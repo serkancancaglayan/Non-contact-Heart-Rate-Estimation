@@ -1,0 +1,9 @@
+opencv-python
+cmake
+dlib
+numpy
+scipy
+imutils
+sklearn
+argparse
+matplotlib
