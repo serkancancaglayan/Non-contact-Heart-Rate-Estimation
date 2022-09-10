@@ -1,4 +1,3 @@
-from locale import normalize
 from FaceUtilities import *
 from SignalProcessing import *
 import matplotlib.pyplot as plt
