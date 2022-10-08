@@ -3,7 +3,9 @@
 **Contributors**
 
 >Nurullah Calik ncalik.edu@gmail.com
+
 >Semih Demir sdemir1414@gmail.com
+
 >Serkan Can Caglayan serkan.can.caglayan99@gmail.com 
 
 Non-contact heart rate estimation is performed by analyzing the color change that occurs in the skin during each cardiovascular cycle.
