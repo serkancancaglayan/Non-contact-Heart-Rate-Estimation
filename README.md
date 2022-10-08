@@ -26,6 +26,7 @@ $ python3 runDemo.py --videoSource <Video path or camera index>, --duration <Len
 ```
 
 ***Benchmarking***
+This study tested on dataset named ***LGI-PPGI-Face-Video-Database***.
 <br>
 <p align="center"><img width=60% src="https://github.com/partofthestars/LGI-PPGI-DB/blob/master/media/cpi_db.jpg"></p>
 <p align="center"><img width=60% src="https://github.com/partofthestars/LGI-PPGI-DB/blob/master/media/alex_db.jpg"></p>
