@@ -29,11 +29,12 @@ $ python3 runDemo.py --videoSource <Video path or camera index>, --duration <Len
 
 This study tested on dataset named ***LGI-PPGI-Face-Video-Database***.
 
->The dataset can be accessed at this link : https://github.com/partofthestars/LGI-PPGI-DB
+>The dataset can be accessed from link : https://github.com/partofthestars/LGI-PPGI-DB
 <br>
 <p align="center"><img width=60% src="https://github.com/partofthestars/LGI-PPGI-DB/blob/master/media/cpi_db.jpg"></p>
 <p align="center"><img width=60% src="https://github.com/partofthestars/LGI-PPGI-DB/blob/master/media/alex_db.jpg"></p>
 <p align="center"><img width=60% src="https://github.com/partofthestars/LGI-PPGI-DB/blob/master/media/felix_db.jpg"></p>
 <br>
 
-
+The videos in the dataset is divided into 15-second clips and the heart rate corresponding to each clip is tabulated.
+Output of our algorithm for each clip compared with ground truth. Clips with a relative error of less than 5% were labeled as 1, clips with a larger error were labeled as 0. The sum of the accuracy column is divided by the column length and the accuracy value is calculated as ***%78.4***.
