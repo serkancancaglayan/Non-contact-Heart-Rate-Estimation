@@ -25,4 +25,11 @@ $ pip install -r requirements.txt
 $ python3 runDemo.py --videoSource <Video path or camera index>, --duration <Length of video clip for heart rate detection(15 is recommended), --plot <1 or 0>
 ```
 
+***Benchmarking***
+<br>
+<p align="center"><img width=60% src="https://github.com/partofthestars/LGI-PPGI-DB/blob/master/media/cpi_db.jpg"></p>
+<p align="center"><img width=60% src="https://github.com/partofthestars/LGI-PPGI-DB/blob/master/media/alex_db.jpg"></p>
+<p align="center"><img width=60% src="https://github.com/partofthestars/LGI-PPGI-DB/blob/master/media/felix_db.jpg"></p>
+<br>
+
 
