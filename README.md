@@ -7,5 +7,12 @@ This color change that is too small to be seen with the naked eye, was converted
 
 ![Screenshot](Workflow.jpg)
 
-
+Nabiz tespiti yapılacağı video kesiti uzunluğu
 **Running a Demo**
+```
+$ git clone https://github.com/serkancancaglayan/Non-contact-Heart-Rate-Estimation.git
+$ cd Non-contact-Heart-Rate-Estimation
+$ pip install -r requirements.txt
+$ python3 runDemo.py --videoSource <Video path or camera index>, --duration <Length of video clip for heart rate detection(15 is recommended), --plot <1 or 0>
+
+```
