@@ -1,26 +1,42 @@
-from locale import normalize
 from FaceUtilities import *
 from SignalProcessing import *
 import matplotlib.pyplot as plt
-
+from scipy.io import savemat
 def captureFrames(source, duration):
     frameBuffer = list()
     videoCap = cv.VideoCapture(source)
     samplingRate =  int(videoCap.get(cv.CAP_PROP_FPS))
-    for i in range(samplingRate * duration):
-        ret, frame = videoCap.read()
-        if ret == True:
-            frameBuffer.append(frame)
-        else:
-            continue
+    print('Sampling Rate :', samplingRate)
+    if duration != 0:
+        for _ in range(samplingRate * duration):
+            ret, frame = videoCap.read()
+            if ret == True:
+                frameBuffer.append(frame)
+            else:
+                continue
 
-        cv.imshow('Capturing Frames...', frame)
-        if cv.waitKey(1) == 27:
-            break
+            cv.imshow('Capturing Frames...', frame)
+            if cv.waitKey(1) == 27:
+                break
+    else:
+        while True:
+            ret, frame = videoCap.read()
+            if ret == False:
+                break
+            else:
+                frameBuffer.append(frame)
+            cv.imshow('Capturing Frames...', frame)
+            if cv.waitKey(1) == 27:
+                break
     videoCap.release()
     cv.destroyAllWindows()
     return frameBuffer, samplingRate
 
+def getPSD(signal):
+    n = len(signal)
+    fhat = np.fft.fft(signal)
+    psd = fhat * np.conj(fhat) / n
+    return np.real(psd)
 
 def estimateHR(frameBuffer, samplingRate, plot = 1):
     meansROI1 = []
@@ -28,19 +44,23 @@ def estimateHR(frameBuffer, samplingRate, plot = 1):
     meansROI3 = []
     
     for frame in frameBuffer:
-        startX, startY, endX, endY = detectFace(frame)
-        facialLandmarks = detectLandmarks(frame, startX, startY, endX, endY)
-        roiRightCheek, roitLeftCheek, roiForeHead = extractROIs(frame, facialLandmarks, startY)
-       
-        mROI1 = np.mean(extractGreenChannel(roiRightCheek))
-        mROI2 = np.mean(extractGreenChannel(roitLeftCheek))
-        mROI3 = np.mean(extractGreenChannel(roiForeHead))
+        try:
+            startX, startY, endX, endY = detectFace(frame)
+            facialLandmarks = detectLandmarks(frame, startX, startY, endX, endY)
+            roiRightCheek, roitLeftCheek, roiForeHead = extractROIs(frame, facialLandmarks, startY)
+        
+            mROI1 = np.mean(extractGreenChannel(roiRightCheek))
+            mROI2 = np.mean(extractGreenChannel(roitLeftCheek))
+            mROI3 = np.mean(extractGreenChannel(roiForeHead))
 
-        meansROI1.append(mROI1)
-        meansROI2.append(mROI2)
-        meansROI3.append(mROI3)
-
-        cv.imshow('Calculating HR', frame)
+            meansROI1.append(mROI1)
+            meansROI2.append(mROI2)
+            meansROI3.append(mROI3)
+        except:
+            meansROI1.append(0)
+            meansROI2.append(0)
+            meansROI3.append(0)
+        cv.imshow('Calculating HR...', frame)
         if cv.waitKey(1) == 27:
             break
 
@@ -52,26 +72,30 @@ def estimateHR(frameBuffer, samplingRate, plot = 1):
     normalizedROI2 = zeroCenterNormalization(meansROI2)
     normalizedROI3 = zeroCenterNormalization(meansROI3)
 
-    medianROI1 = medianFilter(normalizedROI1, k = 3)
-    medianROI2 = medianFilter(normalizedROI2, k = 3)
-    medianROI3 = medianFilter(normalizedROI3, k = 3)
+    denoisedROI1 = denoiseWavelet(normalizedROI1)
+    denoisedROI2 = denoiseWavelet(normalizedROI2)
+    denoisedROI3 = denoiseWavelet(normalizedROI3)
 
-    bandPassedROI1 = bandPassFilter(medianROI1, samplingRate, 1, 2.75, 3)
-    bandPassedROI2 = bandPassFilter(medianROI2, samplingRate, 1, 2.75, 3)
-    bandPassedROI3 = bandPassFilter(medianROI3, samplingRate, 1, 2.75, 3)
+    bandPassedROI1 = bandPassFilter(denoisedROI1, samplingRate, 1, 2.75, 3)
+    bandPassedROI2 = bandPassFilter(denoisedROI2, samplingRate, 1, 2.75, 3)
+    bandPassedROI3 = bandPassFilter(denoisedROI3, samplingRate, 1, 2.75, 3)
 
-    allRoiSignals = np.array([bandPassedROI1, bandPassedROI2, bandPassedROI3])
-    pcaSignal = PCA_(allRoiSignals, 1)
+    final_psd = getPSD(bandPassedROI1) * getPSD(bandPassedROI2) * getPSD(bandPassedROI3)
+    final_signal = np.fft.ifft(final_psd)    
     
-    windowedSignal = hammingWindow(pcaSignal)
-
+    d = {'ppg_signal' : final_signal}
+    savemat('ppg_signal.mat', d)
+    windowedSignal = hammingWindow(final_signal)
     HRRange, powerSpect = getPowerSpectrum(windowedSignal, samplingRate, 1, 2.75)
     HR = int(HRRange[np.argmax(powerSpect)])
 
     if plot:
         plt.figure(figsize = (15, 7))
-        plt.subplot(2, 1, 1), plt.plot(pcaSignal), plt.title('rPPG Signal')
-        plt.subplot(2, 1, 2), plt.plot(HRRange, powerSpect), plt.axvspan(HR, HR +3, color = 'r', alpha = 0.2), plt.title('Power Spectrum')
+        plt.plot(final_signal), plt.title('rPPG Signal')
+        plt.figure()
+        plt.plot(HRRange, powerSpect), plt.axvspan(HR - 2, HR + 4, color = 'r', alpha = 0.2), plt.title('Power Spectrum')
         plt.show()
-    return HR
+
+    return HR, final_signal
+
 

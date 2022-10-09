@@ -1,6 +1,6 @@
+from HREstimator import *
 import argparse
 from sys import argv
-from HREstimator import *
 
 if len(argv) > 0:
     argParser = argparse.ArgumentParser()
@@ -14,6 +14,6 @@ if len(argv) > 0:
     plot = args.plot
     
     frameBuffer, samplingRate = captureFrames(source, duration)
-    HR = estimateHR(frameBuffer, samplingRate, plot)
+    HR, pca_signal = estimateHR(frameBuffer, samplingRate, plot)
     print('Heart rate : ', HR)
 
