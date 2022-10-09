@@ -2,12 +2,13 @@
 
 **Contributors**
 
->Nurullah Calik ncalik.edu@gmail.com
+
 
 >Semih Demir sdemir1414@gmail.com
 
 >Serkan Can Caglayan serkan.can.caglayan99@gmail.com 
 
+>Nurullah Calik nurullah.calik@medeniyet.edu.tr
 
 ***This study can be used for educational or research purposes only.***
 
