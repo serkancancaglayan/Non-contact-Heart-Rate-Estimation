@@ -14,6 +14,6 @@ if len(argv) > 0:
     plot = args.plot
     
     frameBuffer, samplingRate = captureFrames(source, duration)
-    HR, pca_signal = estimateHR(frameBuffer, samplingRate, plot)
+    HR, rppg_signal = estimateHR(frameBuffer, samplingRate, plot)
     print('Heart rate : ', HR)
 
