@@ -2,6 +2,7 @@ import math
 import numpy as np
 from scipy.signal import lfilter, butter
 from sklearn.decomposition import PCA
+from skimage.restoration import denoise_wavelet, estimate_sigma
 
 def nextPow2(x):
     if x == 0:
@@ -12,22 +13,12 @@ def zeroCenterNormalization(signal):
     normalizedSignal = (signal - np.mean(signal)) / np.std(signal)
     return normalizedSignal
 
-
-def medianFilter(signal, k):
-
-    l = (k - 1) // 2
-    filteredSignal = np.zeros ((len(signal), k), dtype=signal.dtype)
-    filteredSignal[:, l] = signal
-    for i in range(l):
-        j = l - i
-        filteredSignal[j:,i] = signal[:-j]
-        filteredSignal[:j,i] = signal[0]
-        filteredSignal[:-j,-(i+1)] = signal[j:]
-        filteredSignal[-j:,-(i+1)] = signal[-1]
-
-    filteredSignal = np.median(filteredSignal, axis = 1)
-    return filteredSignal
-
+def denoiseWavelet(signal):
+    sigma_est = estimate_sigma(signal, average_sigmas=True)
+    denoised_signal = denoise_wavelet(signal, sigma = sigma_est,
+                           method='BayesShrink', mode='soft',
+                           rescale_sigma=True)
+    return denoised_signal
 
 def bandPassFilter(signal, samplingRate, lowend, highend, order):
     nyq = 0.5 * samplingRate
@@ -36,15 +27,6 @@ def bandPassFilter(signal, samplingRate, lowend, highend, order):
     b, a = butter(order, [low, high], btype = 'band')
     filtered_signal = lfilter(b, a, signal)
     return filtered_signal
-
-def PCA_(signals, n_components):
-    signalsT = np.transpose(signals)
-    pca = PCA(n_components = n_components)
-    pca.fit(signalsT)
-
-    final_spect = pca.transform(signalsT)
-    final_spect = np.squeeze(final_spect, axis =(1,))
-    return final_spect
 
 def hammingWindow(signal):
     window = np.hamming(len(signal))
