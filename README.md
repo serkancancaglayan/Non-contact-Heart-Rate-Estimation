@@ -41,5 +41,6 @@ The videos in the dataset is divided into 15-second clips and the heart rate cor
 Output of our algorithm for each clip compared with ground truth. Clips with a relative error less than 5% were labeled as 1, clips with a larger error were labeled as 0. The sum of the accuracy column is divided by the column length and the accuracy value is calculated as ***%78.4***.
 
 <p align="center"><img width=20% src="ISAR.jpeg"></p>
-***This project was developed as undergraduate final project within ISAR Lab**
+***This project was developed as undergraduate final project within ISAR Lab***
+
 https://github.com/ISAR-Lab
