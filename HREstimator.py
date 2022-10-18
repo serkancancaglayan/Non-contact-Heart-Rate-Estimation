@@ -85,7 +85,7 @@ def estimateHR(frameBuffer, samplingRate, plot = 1):
     
     d = {'ppg_signal' : final_signal}
     savemat('ppg_signal.mat', d)
-    windowedSignal = hammingWindow(final_signal)
+    windowedSignal = blackmanWindow(final_signal)
     HRRange, powerSpect = getPowerSpectrum(windowedSignal, samplingRate, 1, 2.75)
     HR = int(HRRange[np.argmax(powerSpect)])
 
