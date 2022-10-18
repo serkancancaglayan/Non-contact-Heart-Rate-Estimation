@@ -28,8 +28,8 @@ def bandPassFilter(signal, samplingRate, lowend, highend, order):
     filtered_signal = lfilter(b, a, signal)
     return filtered_signal
 
-def hammingWindow(signal):
-    window = np.hamming(len(signal))
+def blackmanWindow(signal):
+    window = np.blackman(len(signal))
     windowed_signal = np.multiply(signal, window)
     return windowed_signal
 
