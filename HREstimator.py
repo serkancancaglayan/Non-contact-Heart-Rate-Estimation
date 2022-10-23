@@ -2,15 +2,17 @@ from FaceUtilities import *
 from SignalProcessing import *
 import matplotlib.pyplot as plt
 from scipy.io import savemat
+
+
 def captureFrames(source, duration):
     frameBuffer = list()
     videoCap = cv.VideoCapture(source)
-    samplingRate =  int(videoCap.get(cv.CAP_PROP_FPS))
+    samplingRate = int(videoCap.get(cv.CAP_PROP_FPS))
     print('Sampling Rate :', samplingRate)
     if duration != 0:
         for _ in range(samplingRate * duration):
             ret, frame = videoCap.read()
-            if ret == True:
+            if ret:
                 frameBuffer.append(frame)
             else:
                 continue
@@ -21,7 +23,7 @@ def captureFrames(source, duration):
     else:
         while True:
             ret, frame = videoCap.read()
-            if ret == False:
+            if not ret:
                 break
             else:
                 frameBuffer.append(frame)
@@ -32,25 +34,27 @@ def captureFrames(source, duration):
     cv.destroyAllWindows()
     return frameBuffer, samplingRate
 
+
 def getPSD(signal):
     n = len(signal)
     fhat = np.fft.fft(signal)
     psd = fhat * np.conj(fhat) / n
     return np.real(psd)
 
-def estimateHR(frameBuffer, samplingRate, plot = 1):
+
+def estimateHR(frameBuffer, samplingRate, plot=1):
     meansROI1 = []
     meansROI2 = []
     meansROI3 = []
-    
+
     for frame in frameBuffer:
         try:
             startX, startY, endX, endY = detectFace(frame)
             facialLandmarks = detectLandmarks(frame, startX, startY, endX, endY)
-            roiRightCheek, roitLeftCheek, roiForeHead = extractROIs(frame, facialLandmarks, startY)
-        
+            roiRightCheek, roiLeftCheek, roiForeHead = extractROIs(frame, facialLandmarks, startY)
+
             mROI1 = np.mean(extractGreenChannel(roiRightCheek))
-            mROI2 = np.mean(extractGreenChannel(roitLeftCheek))
+            mROI2 = np.mean(extractGreenChannel(roiLeftCheek))
             mROI3 = np.mean(extractGreenChannel(roiForeHead))
 
             meansROI1.append(mROI1)
@@ -81,21 +85,55 @@ def estimateHR(frameBuffer, samplingRate, plot = 1):
     bandPassedROI3 = bandPassFilter(denoisedROI3, samplingRate, 1, 2.75, 3)
 
     final_psd = getPSD(bandPassedROI1) * getPSD(bandPassedROI2) * getPSD(bandPassedROI3)
-    final_signal = np.fft.ifft(final_psd)    
-    
-    d = {'ppg_signal' : final_signal}
+    final_signal = np.fft.ifft(final_psd)
+
+    d = {'ppg_signal': final_signal}
     savemat('ppg_signal.mat', d)
     windowedSignal = hammingWindow(final_signal)
     HRRange, powerSpect = getPowerSpectrum(windowedSignal, samplingRate, 1, 2.75)
     HR = int(HRRange[np.argmax(powerSpect)])
 
     if plot:
-        plt.figure(figsize = (15, 7))
+        plt.figure(figsize=(15, 7))
         plt.plot(final_signal), plt.title('rPPG Signal')
         plt.figure()
-        plt.plot(HRRange, powerSpect), plt.axvspan(HR - 2, HR + 4, color = 'r', alpha = 0.2), plt.title('Power Spectrum')
+        plt.plot(HRRange, powerSpect), plt.axvspan(HR - 2, HR + 4, color='r', alpha=0.2), plt.title('Power Spectrum')
         plt.show()
 
     return HR, final_signal
+
+
+def estimateHRSlices(frameBuffer, samplingRate, plot = 1):
+    allSliceMeans = list()
+    for frame in frameBuffer:
+        startX, startY, endX, endY = detectFace(frame)
+        allSliceMeans.append(sliceFace(frame, startX, startY, endX, endY))
+        cv.imshow("Slice Method", frame)
+        if cv.waitKey(1) == 27:
+            break
+    allSliceMeans = np.transpose(np.array(allSliceMeans))
+    bestSlices = getNoiseFreeSlices(allSliceMeans, 10)
+    for i in range(len(bestSlices)):
+        bestSlices[i] = np.array(bestSlices[i])
+        bestSlices[i] = zeroCenterNormalization(bestSlices[i])
+        bestSlices[i] = denoiseWavelet(bestSlices[i])
+        bestSlices[i] = bandPassFilter(bestSlices[i], samplingRate, 1, 2.75, 3)
+    finalPsd = getPSD(bestSlices[0])
+    for slice in bestSlices[1:]:
+        finalPsd = finalPsd * getPSD(slice)
+    finalSignal = np.real(np.fft.ifft(finalPsd))
+    windowedSignal = hammingWindow(finalSignal)
+    HRRange, powerSpect = getPowerSpectrum(windowedSignal, samplingRate, 1, 2.75)
+    HR = int(HRRange[np.argmax(powerSpect)])
+    if plot:
+        plt.figure(figsize=(15, 7))
+        plt.plot(finalSignal), plt.title('rPPG Signal')
+        plt.figure()
+        plt.plot(HRRange, powerSpect), plt.axvspan(HR - 2, HR + 4, color='r', alpha=0.2), plt.title('Power Spectrum')
+        plt.show()
+
+    return HR, finalSignal
+
+
 
 
