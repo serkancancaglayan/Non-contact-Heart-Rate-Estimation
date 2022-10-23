@@ -71,6 +71,13 @@ def signaltonoise(a, axis=0, ddof=0):
     return np.where(sd == 0, 0, m / sd)
 
 
+def getPSD(signal):
+    n = len(signal)
+    fhat = np.fft.fft(signal)
+    psd = fhat * np.conj(fhat) / n
+    return np.real(psd)
+
+
 def getNoiseMetric(signal):
     return np.std(signal) / signaltonoise(signal)
 

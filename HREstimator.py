@@ -35,13 +35,6 @@ def captureFrames(source, duration):
     return frameBuffer, samplingRate
 
 
-def getPSD(signal):
-    n = len(signal)
-    fhat = np.fft.fft(signal)
-    psd = fhat * np.conj(fhat) / n
-    return np.real(psd)
-
-
 def estimateHR(frameBuffer, samplingRate, plot=1):
     meansROI1 = []
     meansROI2 = []
@@ -103,7 +96,7 @@ def estimateHR(frameBuffer, samplingRate, plot=1):
     return HR, final_signal
 
 
-def estimateHRSlices(frameBuffer, samplingRate, plot = 1):
+def estimateHRSlices(frameBuffer, samplingRate, plot=1):
     allSliceMeans = list()
     for frame in frameBuffer:
         startX, startY, endX, endY = detectFace(frame)
@@ -133,7 +126,3 @@ def estimateHRSlices(frameBuffer, samplingRate, plot = 1):
         plt.show()
 
     return HR, finalSignal
-
-
-
-
